@@ -1,0 +1,66 @@
+Create table part
+( pid int primary key,
+Pname varchar(15) not NULL,
+Pcolor varchar(15) not NULL);
+Create table supplier
+( sid int primary key,
+Snake varchar(15) not NULL,
+Saddr varchar(15) not NULL);
+Create supply
+( sid int references supplier(sid) on delete cascade,
+Pid int references part(pid) on delete cascade,
+Quantity int not NULL,
+Primary key(sid,pid));
+Insert into part values (101,’nail’,’grey’);
+Insert into supplier values(201,’S1’,’MSR Nagar’);
+Insert into supply values(201,101,100);
+D(1):-
+Select * from part
+Where pid in (select pid from supply
+Where sid in (select sid from supplier
+Where snake=’S3’));
+D(2):-
+Select snake from supplier
+Where sid in (select sid from supply
+Where pid in (select pid from part
+Where pname=’bolts’));
+D(3):-
+Delete from part where pcolor=’red’;
+Select * from part;
+D(4):-
+Select * from supplier
+Where sid in (select sid,count(*) from supply
+Group by sid having count(*)=2);
+(F):-
+Create supply_copy
+(sid int references supplier(sid) on delete cascade,
+Pid int references part(pid) on delete cascade,
+Quantity int not NULL,
+Primary key(sid,pid));
+edit copy_table.sql
+declare
+Cursor curr is select * from supply;
+counter int ;
+rows supply%rowtype;
+begin
+open curr;
+loop
+fetch curr into rows;
+exit when curr%notfound;
+insert into supply_copy values(rows.sid, rows.pid, rows.quantity);
+end loop
+counter:= curr%rowcount;
+close curr;
+dbms_output.put_line(counter||”rows inserted”);
+end;
+/
+set serveroutput on
+@copy_table.sql
+(E)
+db.createCollection(“exercise2”)
+db.exercise2.insert({“sid”:101,”pid”:1,”pname”:’nails’,”sname”:’s1’,”color”:’black’})
+E(1):-
+db.exercise2.update({“sid”:101},{$set:{“color”:’grey’}},{multi:true});
+db.exercise2.find().pretty();
+E(2):-
+db.exercise2.find({“pid”:1}).pretty()
